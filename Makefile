@@ -2,7 +2,7 @@ OS := $(shell uname)
 
 # export O_CFLAGS := $(CFLAGS)
 CFLAGS := -I$(OS) -I. # -O
-COMPILE := gcc $(CFLAGS)
+COMPILE := gcc $(CFLAGS) -Wall
 
 C_FILES := $(wildcard *.c $(OS)/*.c)
 C_FILES_EXCLUDE := fiemap.c mkself.c
@@ -13,16 +13,15 @@ D_FILES := $(wildcard *.d)
 
 ################################################################################
 
-TARGET = extents
+TARGET := extents
+.DEFAULT_GOAL:=$(TARGET)
 
-.DEFAULT: all
 .PHONY: all dependencies install test clean
 
 clean:
 	rm -rf $(O_FILES) $(TARGET) $(D_FILES)
 
-all: Makefile.d 
-	$(MAKE) $(TARGET)
+all: $(TARGET)
 
 Makefile.d: $(C_FILES) $(H_FILES) 
 	$(COMPILE) -MM $^ > $@

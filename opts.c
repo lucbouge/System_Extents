@@ -20,38 +20,47 @@ bool
 
 off_t max_cmp= -1, skip1= 0, skip2= 0;
 
-#define USAGE "usage: %s -P [-f] [-n] [-p] FILE1 [FILE2 ...]\n"               \
-              "or:    %s [-s|-u] [-f] [-n] [-p] FILE1 [FILE2 ...]\n"          \
-	          "or:    %s -c [-b LIMIT] [-i SKIP1[:SKIP2]] [-v] FILE1 FILE2\n" \
-	          "or:    %s -h\n"
+static const char* usage_string = "\
+usage: %s -P [-f] [-n] [-p] FILE1 [FILE2 ...]\n\
+or:    %s [-s|-u] [-f] [-n] [-p] FILE1 [FILE2 ...]\n\
+or:    %s -c [-b LIMIT] [-i SKIP1[:SKIP2]] [-v] FILE1 FILE2\n\
+or:    %s -h\n";
 
-static void usage(char *p) { fail(USAGE, p, p, p, p); }
+static void usage(char *p) { fail(usage_string, p, p, p, p); }
+
+// Write it with puts to overcome the printf limitations
+static const char* doc_string = "\n\
+With -P, prints information about each extent.\n\
+With -c, prints indices of regions which may differ (used to drive ccmp).\n\
+Otherwise, determines which extents are shared and prints information about shared and unshared extents.\n\
+An extent is a contiguous area of physical storage and is described by:\n\
+  n if it belongs to FILEn (omitted for only a single file);\n\
+  the logical offset in the file at which it begins;\n\
+  the physical offset on the underlying device at which it begins (if -p is specified);\n\
+  its length.\n\
+  Offsets and lengths are in bytes.\n\
+OS-specific flags are also printed (with -f). Flags are available only on Linux and are described in /usr/include/linux/fiemap.h.\n\n\
+Options and their long forms:\n\
+-b --bytes LIMIT                   Compare at most LIMIT bytes (-c only)\n\
+-c --cmp                           (two files only) Output unshared regions to be compared by ccmp. Fails silently unless -v follows.\n\
+-f --flags                         Print OS-specific flags for each extent\n\
+-h --help                          Print help (this message)\n\
+-i --ignore-initial SKIP1[:SKIP2]  Skip first SKIP1 bytes of file1 (optionally, SKIP2 of file2) -- (-c)\n\
+-n --no_headers                    Don't print human-readable headers and line numbers, output is easier to parse.\n\
+-P --print_extents_only            Print extents for each file\n\
+-p --print_phys_addr               Print physical address of extents\n\
+-s --print_shared_only             Print only shared extents\n\
+-u --print_unshared_only           Print only unshared extents\n\
+-v --dont_fail_silently            Don't fail silently (use only after -c)\n\
+\n\
+Mario Wolczko, Oracle, Sep 2021\n\
+";
+
 
 static void print_help(char *progname) {
     printf("%s: Print extent information for files\n\n", progname);
-    printf(USAGE, progname, progname, progname, progname);
-    printf("\nWith -P, prints information about each extent.\n");
-    printf("With -c, prints indices of regions which may differ (used to drive ccmp).\n");
-    printf("Otherwise, determines which extents are shared and prints information about shared and unshared extents.\n");
-    printf("An extent is a contiguous area of physical storage and is described by:\n");
-    printf("  n if it belongs to FILEn (omitted for only a single file);\n");
-    printf("  the logical offset in the file at which it begins;\n");
-    printf("  the physical offset on the underlying device at which it begins (if -p is specified);\n");
-    printf("  its length.\nOffsets and lengths are in bytes.\n");
-    printf("OS-specific flags are also printed (with -f). Flags are available only on Linux and are described in /usr/include/linux/fiemap.h.\n\n");
-    printf("Options and their long forms:\n");
-    printf("-b --bytes LIMIT                   Compare at most LIMIT bytes (-c only)\n");
-    printf("-c --cmp                           (two files only) Output unshared regions to be compared by ccmp. Fails silently unless -v follows.\n");
-    printf("-f --flags                         Print OS-specific flags for each extent\n");
-    printf("-h --help                          Print help (this message)\n");
-    printf("-i --ignore-initial SKIP1[:SKIP2}  Skip first SKIP1 bytes of file1 (optionally, SKIP2 of file2) -- (-c)\n");
-    printf("-n --no_headers                    Don't print human-readable headers and line numbers, output is easier to parse.\n");
-    printf("-P --print_extents_only            Print extents for each file\n");
-    printf("-p --print_phys_addr               Print physical address of extents\n");
-    printf("-s --print_shared_only             Print only shared extents\n");
-    printf("-u --print_unshared_only           Print only unshared extents\n");
-    printf("-v --dont_fail_silently            Don't fail silently (use only after -c)\n");
-    printf("\nMario Wolczko, Oracle, Sep 2021\n");
+    printf(usage_string, progname, progname, progname, progname);
+    puts(doc_string);
     exit(0);
 }
 

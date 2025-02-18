@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "extents.h"
 
+// TODO: Use a libc function. Also, take care of the computation order
 #define roundDown(a, b) ((a) / (b) * (b))
 
 extern void flags2str(unsigned flags, char *s, size_t n, bool sharing);

@@ -7,18 +7,27 @@
 
 typedef struct list list;
 
-struct list {
-    unsigned nelems;
-    int max_sz; // negative means growable
-    void **elems;
+struct list
+{
+  unsigned nelems;
+  int max_sz; // negative means growable
+  void **elems;
 };
 
-#define ITER(l, EL_T, elem, stmt) {             \
-  list *_l= (l);                                \
-  for (unsigned _i= 0; _i < _l->nelems; ++_i) { \
-    EL_T (elem)= get(_l, _i);                   \
-    do { stmt; } while (0);                     \
-  }}
+#define ITER(l, EL_T, elem, stmt)                \
+  {                                              \
+    list * /**/ _l = (l);                        \
+    for (unsigned _i = 0; _i < _l->nelems; ++_i) \
+    {                                            \
+      EL_T /**/ elem = get(_l, _i);              \
+      {                                          \
+        do                                       \
+        {                                        \
+          stmt /**/;                             \
+        } while (0);                             \
+      }                                          \
+    }                                            \
+  };
 
 extern unsigned n_elems(list *ps);
 
@@ -47,4 +56,4 @@ extern list *new_list(int max_sz);
 
 extern list *append(list *ps, void *e);
 
-#endif //EXTENTS_LISTS_H
+#endif // EXTENTS_LISTS_H
