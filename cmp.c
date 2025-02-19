@@ -2,13 +2,14 @@
  * Generating indices for cmp(1)
  *
  * Walks through a pair of files, one extent at a time (in logical order).  Reports regions which may differ;
- * suppresses the report when two regions share a physical extent.  
+ * suppresses the report when two regions share a physical extent.
  * Can be directed to start at any offset in either file
  * using -i, and to limit the size of the region being compared (-b).
  */
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "cmp.h"
 #include "extents.h"
@@ -25,7 +26,7 @@ struct ecmp
     unsigned i;
 } f1, f2;
 
-static void swap()
+static void swap(void)
 {
     ecmp tmp = f1;
     f1 = f2;
@@ -58,6 +59,7 @@ static bool advance(ecmp *ec)
 
 static void init(ecmp *ec, fileinfo *info)
 {
+    assert(((int)info->n_exts) != 0); // Luc
     ec->lst = new_list((int)info->n_exts);
     for (unsigned i = 0; i < info->n_exts; ++i)
         append(ec->lst, &info->exts[i]);
@@ -76,7 +78,7 @@ static void init(ecmp *ec, fileinfo *info)
 
 static off_t last_start = -1, last_len; // used to merge contiguous regions
 
-static void print_last()
+static void print_last(void)
 {
     if (last_start >= 0)
         print_cmp(last_start, last_len);
@@ -96,7 +98,7 @@ static void report(off_t len)
 }
 
 // trunc at max_cmp
-void generate_cmp_output()
+void generate_cmp_output(void)
 {
     check_all_extents_are_sane();
     if (max_cmp < 0)

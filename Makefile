@@ -2,14 +2,18 @@ OS := $(shell uname)
 
 # export O_CFLAGS := $(CFLAGS)
 CFLAGS := -I$(OS) -I. # -O
-COMPILE := gcc $(CFLAGS) -Wall -pedantic  
+ADDITIONAL_CFLAGS := -Wall -pedantic -g -Wno-nullability-extension
+COMPILE := gcc $(CFLAGS) $(ADDITIONAL_CFLAGS)
 
 C_FILES := $(wildcard *.c $(OS)/*.c)
 C_FILES_EXCLUDE := fiemap.c mkself.c
 C_FILES := $(filter-out $(C_FILES_EXCLUDE), $(C_FILES))
 H_FILES := $(wildcard *.h $(OS)/*.h)
 O_FILES := $(C_FILES:%.c=%.o)
-D_FILES := $(wildcard *.d)
+
+MAKEFILE_FILES := Makefile Makefile.d
+
+
 
 ################################################################################
 
@@ -30,10 +34,10 @@ Makefile.d: $(C_FILES) $(H_FILES)
 
 include Makefile.d
 
-$(TARGET): $(O_FILES)
+$(TARGET): $(O_FILES) 
 	$(COMPILE) -o $@ $^
 
-$(O_FILES):%.o:%.c
+$(O_FILES):%.o:%.c $(MAKEFILE_FILES)
 	$(COMPILE) -c $< -o $@
 
 ################################################################################
