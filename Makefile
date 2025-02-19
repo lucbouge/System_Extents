@@ -2,7 +2,7 @@ OS := $(shell uname)
 
 # export O_CFLAGS := $(CFLAGS)
 CFLAGS := -I$(OS) -I. # -O
-COMPILE := gcc $(CFLAGS) -Wall
+COMPILE := gcc $(CFLAGS) -Wall -pedantic  
 
 C_FILES := $(wildcard *.c $(OS)/*.c)
 C_FILES_EXCLUDE := fiemap.c mkself.c

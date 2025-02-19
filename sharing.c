@@ -42,11 +42,11 @@ static void new_owner(extent *e) {
 static unsigned ei;
 static extent *nxt_e; // == get(extents, ei), or NULL if at end
 
-static void next_extent() {
+static void next_extent(void) {
     nxt_e= ++ei < n_elems(extents) ? get(extents, ei) : NULL;
 }
 
-static void begin_next() {
+static void begin_next(void) {
     cur_e= get(extents, ei);
     new_owner(cur_e);
     start= cur_e->p;
@@ -55,7 +55,7 @@ static void begin_next() {
     next_extent();
 }
 
-static sh_ext *new_sh_ext() {
+static sh_ext *new_sh_ext(void) {
     sh_ext *res= malloc_s(sizeof(sh_ext));
     res->p= start;
     res->len= len;
@@ -72,7 +72,7 @@ static void add_to_unshared(sh_ext *sh) {
     }
 }
 
-static void process_current() {
+static void process_current(void) {
     assert(!is_empty(owners));
     sh_ext *s= new_sh_ext();
     bool is_sing= is_singleton(owners);
@@ -100,7 +100,7 @@ static void insert(extent *e) {
 }
 
 // the extent at ei has changed; move it to the right place to maintain sort order
-static void re_sort() {
+static void re_sort(void) {
     extent **a, **b;
     for (unsigned i= ei;
          i < n_elems(extents) - 1
@@ -119,7 +119,7 @@ static extent *new_extent(fileinfo *pfi, off_t l, off_t p, off_t len, unsigned f
     return res;
 }
 
-void find_shares() {
+void find_shares(void) {
     check_all_extents_are_sane();
     phys_sort_extents();
     shared= new_list(-10); // SWAG
@@ -167,7 +167,7 @@ extent *find_owner(sh_ext *s, unsigned i) {
 unsigned total_self_shared= 0, max_self_shared= 0;
 
 // relies on owners being sorted
-void find_self_shares() {
+void find_self_shares(void) {
     ITER(shared, sh_ext*, s_e, {
         extent *last= NULL;
         ITER(s_e->owners, extent * , o, {

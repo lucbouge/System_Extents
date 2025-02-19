@@ -105,7 +105,7 @@ static void read_ext(char *fn[])
     }
 }
 
-void check_all_extents_are_sane()
+void check_all_extents_are_sane(void)
 {
     ITER(extents, extent *, e, {
         if (!flags_are_sane(e->flags))

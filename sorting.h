@@ -10,7 +10,7 @@ extern void log_sort(list *l);
 
 int extent_list_cmp_phys(extent **pa, extent **pb);
 
-extern void phys_sort_extents();
+extern void phys_sort_extents(void);
 
 void fileno_sort(list *ps);
 

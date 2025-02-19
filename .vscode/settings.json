@@ -1,0 +1,6 @@
+{
+    "explorer.excludeGitIgnore": true,
+    "files.autoSave": "afterDelay",
+    "editor.formatOnSave": true,
+    "html.format.wrapLineLength": 120
+}

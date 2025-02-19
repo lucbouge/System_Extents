@@ -18,8 +18,8 @@ extern list *shared; // list of sh_ext*
 
 extern unsigned total_unshared, total_self_shared, max_self_shared;
 
-extern void find_shares();
+extern void find_shares(void);
 extern extent *find_owner(sh_ext *s, unsigned i);
-extern void find_self_shares();
+extern void find_self_shares(void);
 
 #endif //EXTENTS_SHARING_H

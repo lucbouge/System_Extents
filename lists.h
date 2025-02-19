@@ -14,20 +14,35 @@ struct list
   void **elems;
 };
 
+typedef list *ptr_to_list;
+
+// #define ITER(l, EL_T, elem, stmt)                \
+//   {                                              \
+//     ptr_to_list _l = (l);                        \
+//     for (unsigned _i = 0; _i < _l->nelems; ++_i) \
+//     {                                            \
+//       EL_T /**/ elem = get(_l, _i);              \
+//       {                                          \
+//         do                                       \
+//         {                                        \
+//           stmt /**/;                             \
+//         } while (0);                             \
+//       }                                          \
+//     }                                            \
+//   };
+
 #define ITER(l, EL_T, elem, stmt)                \
   {                                              \
-    list * /**/ _l = (l);                        \
+    ptr_to_list _l = (l);                        \
     for (unsigned _i = 0; _i < _l->nelems; ++_i) \
     {                                            \
-      EL_T /**/ elem = get(_l, _i);              \
+      EL_T(elem) = get(_l, _i);                  \
+      do                                         \
       {                                          \
-        do                                       \
-        {                                        \
-          stmt /**/;                             \
-        } while (0);                             \
-      }                                          \
+        stmt;                                    \
+      } while (0);                               \
     }                                            \
-  };
+  }
 
 extern unsigned n_elems(list *ps);
 

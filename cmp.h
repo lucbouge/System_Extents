@@ -5,6 +5,6 @@
 #ifndef EXTENTS_CMP_H
 #define EXTENTS_CMP_H
 
-extern void generate_cmp_output();
+extern void generate_cmp_output(void);
 
 #endif //EXTENTS_CMP_H
