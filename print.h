@@ -12,7 +12,6 @@
 #endif
 #define FIELD "%" OFF_T
 
-
 extern void print_extents_by_file(void);
 extern void print_shared_extents(void);
 extern void print_shared_extents_no_header(void);
@@ -22,4 +21,4 @@ extern void print_cmp(off_t start, off_t len);
 extern char *flag_pr(unsigned flags, bool sharing);
 extern void print_file_key(void);
 
-#endif //EXTENTS_PRINT_H
+#endif // EXTENTS_PRINT_H

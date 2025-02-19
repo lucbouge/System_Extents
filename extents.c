@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
                     print_self_shared_extents();
             }
         }
-        if (pr_sh && pr_unsh || no_headers)
+        if ((pr_sh && pr_unsh) || no_headers)
             putchar('\n');
         if (pr_unsh)
             print_unshared_extents();

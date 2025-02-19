@@ -14,4 +14,4 @@ extern void phys_sort_extents(void);
 
 void fileno_sort(list *ps);
 
-#endif //EXTENTS_SORTING_H
+#endif // EXTENTS_SORTING_H

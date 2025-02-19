@@ -7,8 +7,9 @@
 
 // an extent with its sharing info
 typedef struct sh_ext sh_ext;
-struct sh_ext {
-    off_t p;          // physical offset on device
+struct sh_ext
+{
+    off_t p; // physical offset on device
     off_t len;
     list *owners;     // the original extent*s from whence it came
     bool self_shared; // mapped to two or more logical extents in the same file
@@ -22,4 +23,4 @@ extern void find_shares(void);
 extern extent *find_owner(sh_ext *s, unsigned i);
 extern void find_self_shares(void);
 
-#endif //EXTENTS_SHARING_H
+#endif // EXTENTS_SHARING_H

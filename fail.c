@@ -4,10 +4,12 @@
 
 #include "fail.h"
 
-bool fail_silently= false;
+bool fail_silently = false;
 
-void fail(const char *fmt, ...) {
-    if (!fail_silently) {
+void fail(const char *fmt, ...)
+{
+    if (!fail_silently)
+    {
         va_list args;
         va_start(args, fmt);
         vfprintf(stderr, fmt, args);

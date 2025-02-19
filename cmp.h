@@ -7,4 +7,4 @@
 
 extern void generate_cmp_output(void);
 
-#endif //EXTENTS_CMP_H
+#endif // EXTENTS_CMP_H
