@@ -182,8 +182,8 @@ function CMP_AWK_LOOP {
       eval awk "$AWK2" "${ERR_FILE}" 1>&2
       ##
       # cmp returns 0 for same, 1 for different
-      (( GLOBAL_CMP_STATUS  &&= ! ${CMP_RETURN_VALUE} )) 
-      if (( ${EXIT_ON_FIRST_DIFFERENCE} && ${CMP_RETURN_VALUE} ))
+      (( GLOBAL_CMP_STATUS= GLOBAL_CMP_STATUS && ! CMP_RETURN_VALUE )) 
+      if (( EXIT_ON_FIRST_DIFFERENCE && CMP_RETURN_VALUE ))
       then 
         break
       fi
@@ -198,16 +198,17 @@ CMP_DIR="$(dirname "$0")"
 PATH="${CMP_DIR}:$PATH"
 
 (set -x; extents -c "${EXTRA_ARGS[@]}" "$A" "$B") | CMP_AWK_LOOP
+
 declare -a PIPE_STATUS=("${PIPESTATUS[@]}")
 CMP_AWK_LOOP_EXIT_STATUS=${PIPE_STATUS[1]}
 EXTENTS_EXIT_STATUS=${PIPE_STATUS[0]}
 
 
-if (( ${EXTENTS_EXIT_STATUS} != 0 ))
+if (( EXTENTS_EXIT_STATUS != 0 ))
 then # extents failed, fall back to cmp
     ${CMP} ${ORIGINAL_ARGS[@]}
     GLOBAL_CMP_STATUS=$?
 else
-    ((GLOBAL_CMP_STATUS = ! ${GLOBAL_CMP_STATUS} ))
+    (( GLOBAL_CMP_STATUS = ! GLOBAL_CMP_STATUS ))
 fi
 exit $GLOBAL_CMP_STATUS
