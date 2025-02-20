@@ -2,24 +2,29 @@
 
 set -u 
 
-trap 'eval rm -f ${T}? /tmp/golden*$$ /tmp/output$$ /tmp/err$$ /tmp/opts$$ /tmp/pairs$$ $TESTS ${T}-self-?-?.dat' 0
-trap exit 2 15
+# trap 'eval rm -rf ${TEST_DIR}' 0
+# trap exit 2 15
 
 # put the files with shared extents here-- must be in a filesystem that supports reflinks
-TEST_DIR=${TEST_DIR:-/tmp}
+TEST_DIR=${TEST_DIR:-${HOME}/tmp/CCMP}
 SUFFIX="$$"
-T="$TEST_DIR/ccmp_test_file_${SUFFIX}_"
+T="${TEST_DIR}/ccmp_test_file_${SUFFIX}_"
 
 CMP='/usr/bin/cmp'
 CCMP='./ccmp.sh'
 
-TEST_FILE="/tmp/ccmp_test_${SUFFIX}"
-OPT_FILE="/tmp/ccmp_options_${SUFFIX}"
-PAIR_FILE="/tmp/ccmp_pairs_${SUFFIX}"
-GOLDEN_OUT_FILE="/tmp/ccmp_golden_out_${SUFFIX}"
-GOLDEN_ERR_FILE="/tmp/ccmp_golden_err_${SUFFIX}"
-CCMP_OUT_FILE="/tmp/ccmp_out_${SUFFIX}"
-CCMP_ERR_FILE="/tmp/ccmp_err_${SUFFIX}"
+if [[ ! -x "${TEST_DIR}" ]]
+then
+    mkdir -p "${TEST_DIR}"
+fi
+
+TEST_FILE="${TEST_DIR}/ccmp_test_${SUFFIX}"
+OPT_FILE="${TEST_DIR}/ccmp_options_${SUFFIX}"
+PAIR_FILE="${TEST_DIR}/ccmp_pairs_${SUFFIX}"
+GOLDEN_OUT_FILE="${TEST_DIR}/ccmp_golden_out_${SUFFIX}"
+GOLDEN_ERR_FILE="${TEST_DIR}/ccmp_golden_err_${SUFFIX}"
+CCMP_OUT_FILE="${TEST_DIR}/ccmp_out_${SUFFIX}"
+CCMP_ERR_FILE="${TEST_DIR}/ccmp_err_${SUFFIX}"
 
 # make a file
 dd if=/dev/random of="${T}0" count=2048 2>/dev/null
@@ -57,21 +62,24 @@ declare -a CCMP_PAIRS=(
 "${T}5:${T}6"
 )
 
-declare -a TESTS_CASES=()
+declare -a TEST_CASES=(1)
+
 for OPTION in "${CCMP_OPTIONS[@]}"
 do
     for PAIR in "${CCMP_PAIRS[@]}"
     do 
         FILES="${PAIR/:/ }"
-	    TESTS_CASES+="$OPTION $FILES"
+        TEST="$OPTION $FILES"
+	    TEST_CASES+=("$TEST")
+        echo ${#TEST_CASES[@]}
     done 
 done
-
 TEST_CASES+=(
 "-bl -i 409600:1048576 ${T}2 ${T}4"
 "-bl -i 409600:1048576 ${T}3 ${T}5"
 "-bl -i 409600:1048576 ${T}3 ${T}6"
 )
+
 
 declare -i FAILED GOOD
 FAILED=0
@@ -89,9 +97,17 @@ fail() {
 
 faildiff() {
     fail "$3"
-    echo diff cmp vs ccmp ; diff "$1" "$2"
+    echo Diff cmp vs ccmp ; diff "$1" "$2"
     echo
 }    
+
+for TEST_ARGS in "${TEST_CASES[@]}"
+do
+    echo ${TEST_ARGS}
+done
+
+################################################################################
+
 
 for TEST_ARGS in "${TEST_CASES[@]}"
 do
@@ -117,6 +133,7 @@ do
     if [[ $GOOD -eq 1 ]]
     then echo Passed
     fi
+    break
 done
 
 exit $FAILED

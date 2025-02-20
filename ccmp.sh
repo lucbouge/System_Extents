@@ -46,10 +46,11 @@ function usage() {
 
 export REGULAR_CMP='/usr/bin/cmp'
 export EXTENTS='./extents'
+CCMP_RESULT_DIR="${HOME}/CCMP"
 
 SUFFIX="$$"
-OUT_FILE="/tmp/ccmp_out_${SUFFIX}"
-ERR_FILE="/tmp/ccmp_err_${SUFFIX}"
+OUT_FILE="${CCMP_RESULT_DIR}/ccmp_result_out_${SUFFIX}"
+ERR_FILE="${CCMP_RESULT_DIR}/ccmp_result_err_${SUFFIX}"
 
 echo ${OUT_FILE} ${ERR_FILE}
 # trap 'rm -rf ${OUT_FILE} ${ERR_FILE}' 0
@@ -103,7 +104,7 @@ do
         BYTES=1 
         ONE=1
         CMP_OPTIONS+=('-b')
-        AWK1="'"'{$5+='"'"'"$START1"'"'"'; printf "%s %s %s %s %s %s %3s %s %3s %s\n", $1, $2, $3, $4, $5, $8, $9, $10, $11, $12 }'"'"
+        AWK1='{$5+=START1; printf "%s %s %s %s %s %s %3s %s %3s %s\n", $1, $2, $3, $4, $5, $8, $9, $10, $11, $12 }'
 	      #AWK2="'{print}'"
         shift;;
       ##
@@ -211,8 +212,11 @@ function CCMP_AWK_LOOP {
   while read START1 START2 LENGTH
   do
       set -x
-      printf 'START1=%i START2=%i LENGTH=%i' $START1 $START2 $LENGTH
-      (set -x; ${EXTENTS} -i "$START1:$START2" -b "$LENGTH" "$A" "$B" >${OUT_FILE} 2>${ERR_FILE})
+      printf 'START1=%i START2=%i LENGTH=%i\n' $START1 $START2 $LENGTH
+      (
+          set -x; 
+          ${EXTENTS} -i "$START1:$START2" -b "$LENGTH" "$A" "$B" >${OUT_FILE} 2>${ERR_FILE}
+      )
       CCMP_RETURN_VALUE=$?
       ##
       (set -x; awk "${AWK1/START1/$START1}" "${OUT_FILE}")
