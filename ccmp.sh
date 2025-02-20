@@ -45,17 +45,22 @@ function usage() {
 ################################################################################
 
 export REGULAR_CMP='/usr/bin/cmp'
+export EXTENTS='./extents'
 
-OUT_FILE="/tmp/cmpout$$"
-ERR_FILE="/tmp/cmperr$$"
+SUFFIX="$$"
+OUT_FILE="/tmp/ccmp_out_${SUFFIX}"
+ERR_FILE="/tmp/ccmp_err_${SUFFIX}"
 
-trap 'rm -rf ${OUT_FILE} ${ERR_FILE}' 0
-trap exit 2 15
+echo ${OUT_FILE} ${ERR_FILE}
+# trap 'rm -rf ${OUT_FILE} ${ERR_FILE}' 0
+# trap 'echo ${OUT_FILE} ${ERR_FILE}' 0 # Luc
+# trap exit 2 15
 
 declare -a ORIGINAL_ARGS=()
-declare -a CMP_OPTIONS=()
+declare -a EXTENTS_OPTIONS=()
 declare -a EXTRA_ARGS=()
-declare -a EXTENTS_ARGS=()
+declare -a CMP_ARGS=()
+declare -a CMP_OPTIONS=()
 
 
 AWK1_="'"'{$5+='"'"'"$START1"'"'"'; $5 = $5 ","; sub(/, line [0-9]*/,""); print}'"'" # for stdout
@@ -109,16 +114,16 @@ do
       '-i'|'--ignore-initial')
 	      SKIP=1
 	      EXTRA_ARGS+=('-i' "$2")
-        AWK1="'"'{$1-='"'"'"$START1"'"'"'; printf "%7s %3s %3s\n", $1, $2, $3}'"'"
+        CMP_OPTIONS+=('-i' "$2")
+        AWK1='{$1-=START1; printf "%7s %3s %3s\n", $1, $2, $3}'
 	      shift 2;;
       ##
       '-l'|'--verbose')
         VERBOSE=1 
         STOP_AT_FIRST_ERROR=0
         CMP_OPTIONS+=('-l')
-        AWK1="'"'{$1+='"'"'"$START1"'"'"'; printf "%7s %3s %3s\n", $1, $2, $3}'"'"
-#      	AWK2="'"'/EOF/ {$7+='"'"'"$START1"'"'"'; sub(/which is/,"after byte");print}'"'"
-      	AWK2="'"'/EOF/ {$7+='"'"'"$START1"'"'"'; print}'"'"
+        AWK1='{$1-=START1; printf "%7s %3s %3s\n", $1, $2, $3}'
+      	AWK2='/EOF/ {$7+=START1; print}'
         shift;;
       ##
       '-n'|'--bytes')
@@ -129,6 +134,7 @@ do
       '-s'|'--quiet'|'--silent') 
         AWK1='{}'
         AWK2='{}'
+        CMP_OPTIONS+=('-s')
         shift;;
       ##
       '-v'|'--version') 
@@ -151,13 +157,11 @@ if (( BYTES && VERBOSE ))
 then
     if (( ! SKIP ))
     then
-	    AWK1="'"'{$1+='"'"'"$START1"'"'"'; printf "%7s %3s %-4s %3s %s\n", $1, $2, $3, $4, $5}'"'"
-#	    AWK2="'"'/EOF/ {$7+='"'"'"$START1"'"'"'; sub(/which is/,"after byte"); print}'"'"
-    	    AWK2="'"'/EOF/ {$7+='"'"'"$START1"'"'"'; print}'"'"
+	    AWK1='{$1+=START1; printf "%7s %3s %-4s %3s %s\n", $1, $2, $3, $4, $5}'
+      AWK2='/EOF/ {$7+=START1; print}'
     else
-	    AWK1="'"'{printf "%s %3s %-4s %3s %s\n", $1, $2, $3, $4, $5}'"'"
-#	    AWK2="'"'/EOF/ {sub(/which is/,"after byte"); print}'"'"
-    	    AWK2="'"'/EOF/ {print}'"'"
+	    AWK1='{printf "%s %3s %-4s %3s %s\n", $1, $2, $3, $4, $5}'
+      AWK2='/EOF/ {print}'
     fi
 fi
 
@@ -165,7 +169,7 @@ fi
 
 case $# in
     1) 
-      ${CCMP} "${ORIGINAL_ARGS[@]}"
+      ${EXTENTS} "${ORIGINAL_ARGS[@]}"
       exit $?
       ;;
     ##
@@ -196,19 +200,23 @@ esac
 ################################################################################
 
 function CCMP_AWK_LOOP {
-  declare -i START1 START2 LENGTH CCMP
-  CCMP=
+  declare -i START1 START2 LENGTH CCMP_RETURN_VALUE
+
   # GLOBAL_CCMP_STATUS is the logical AND of all the inverted cmp statuses 
   # (ie 1 if all returned 1, 0 otherwise)
   declare -i GLOBAL_CCMP_STATUS=1
-  ##
+
+
+
   while read START1 START2 LENGTH
   do
-      ${CCMP} -i "$START1:$START2" -n "$LENGTH" "$A" "$B" >${OUT_FILE} 2>${ERR_FILE}
+      set -x
+      printf 'START1=%i START2=%i LENGTH=%i' $START1 $START2 $LENGTH
+      (set -x; ${EXTENTS} -i "$START1:$START2" -b "$LENGTH" "$A" "$B" >${OUT_FILE} 2>${ERR_FILE})
       CCMP_RETURN_VALUE=$?
       ##
-      eval awk "$AWK1" "${OUT_FILE}"
-      eval awk "$AWK2" "${ERR_FILE}" 1>&2
+      (set -x; awk "${AWK1/START1/$START1}" "${OUT_FILE}")
+      (set -x; awk "${AWK2/START1/$START1}" "${ERR_FILE}" 1>&2)
       ##
       # CCMP returns 0 for same, 1 for different
       (( GLOBAL_CCMP_STATUS= GLOBAL_CCMP_STATUS && ! CCMP_RETURN_VALUE )) 
@@ -224,30 +232,43 @@ function CCMP_AWK_LOOP {
 
 ## extents can be fooled by write data in flight, so stabilize - use fsync in extents?
 # sync
+declare -i EXTENTS_EXIT_STATUS CCMP_AWK_LOOP_EXIT_STATUS GLOBAL_EXIT_STATUS
 
 CCMP_DIR="$(dirname "$0")"
 PATH="${CCMP_DIR}:$PATH"
 
 if [[ "${#EXTRA_ARGS}" = 0 ]]
 then
-  EXTENTS_ARGS=("$A" "$B")
+  EXTENTS_ARGS=()
 else
-  EXTENTS_ARGS=${EXTRA_ARGS}
-  EXTENTS_ARGS+=("$A" "$B")
+  EXTENTS_ARGS=("${EXTRA_ARGS[@]}")
 fi
+EXTENTS_ARGS+=("$A" "$B")
+
+if [[ ${#CMP_OPTIONS} = 0 ]]
+then
+  CMP_ARGS=()
+else 
+  CMP_ARGS=("${CMP_OPTIONS[@]}")
+fi
+CMP_ARGS+=("$A" "$B")
+
+################################################################################
 
 (set -x; extents -c "${EXTENTS_ARGS[@]}") | CCMP_AWK_LOOP
 
 declare -a PIPE_STATUS=("${PIPESTATUS[@]}")
-CCMP_AWK_LOOP_EXIT_STATUS=${PIPE_STATUS[1]}
 EXTENTS_EXIT_STATUS=${PIPE_STATUS[0]}
+CCMP_AWK_LOOP_EXIT_STATUS=${PIPE_STATUS[1]}
 
-
+# EXTENTS_EXIT_STATUS=1
 if (( EXTENTS_EXIT_STATUS != 0 ))
 then # extents failed, fall back to regular cmp
-    ${REGULAR_CMP} ${ORIGINAL_ARGS[@]}
-    GLOBAL_CCMP_STATUS=$?
+    (set -x; ${REGULAR_CMP} ${CMP_ARGS[@]})
+    GLOBAL_EXIT_STATUS=$?
 else
-    (( GLOBAL_CCMP_STATUS = ! GLOBAL_CCMP_STATUS ))
+    GLOBAL_EXIT_STATUS=$(( ! CCMP_AWK_LOOP_EXIT_STATUS ))
 fi
-exit ${GLOBAL_CCMP_STATUS}
+
+exit ${GLOBAL_EXIT_STATUS}
+
