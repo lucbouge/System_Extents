@@ -1,5 +1,6 @@
 extents
 extents-main
+*.zip
 
 # Prerequisites
 *.d
