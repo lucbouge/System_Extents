@@ -78,6 +78,7 @@ void args(int argc, char *argv[])
         {"print_shared_only", no_argument, NULL, 's'},
         {"print_unshared_only", no_argument, NULL, 'u'},
         {"dont_fail_silently", no_argument, NULL, 'v'},
+        {NULL, 0, NULL, 0},
     };
     for (int c; c = getopt_long(argc, argv, "cfhnpPsuvb:i:", longopts, NULL), c != -1;)
     {

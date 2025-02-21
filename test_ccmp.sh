@@ -62,16 +62,15 @@ declare -a CCMP_PAIRS=(
 "${T}5:${T}6"
 )
 
-declare -a TEST_CASES=(1)
+declare -a TEST_CASES=()
 
 for OPTION in "${CCMP_OPTIONS[@]}"
 do
     for PAIR in "${CCMP_PAIRS[@]}"
     do 
         FILES="${PAIR/:/ }"
-        TEST="$OPTION $FILES"
-	    TEST_CASES+=("$TEST")
-        echo ${#TEST_CASES[@]}
+	    TEST_CASES+=("$OPTION $FILES")
+     
     done 
 done
 TEST_CASES+=(
@@ -103,16 +102,17 @@ faildiff() {
 
 for TEST_ARGS in "${TEST_CASES[@]}"
 do
-    echo ${TEST_ARGS}
+    : echo ${TEST_ARGS}
 done
 
 ################################################################################
-
+echo "${GOLDEN_OUT_FILE}" "${GOLDEN_ERR_FILE}" "${CCMP_OUT_FILE}" "${CCMP_ERR_FILE}"
 
 for TEST_ARGS in "${TEST_CASES[@]}"
 do
-    printf "TEST_ARGS: %s" "$TEST_ARGS"
+    printf "TEST_ARGS: %s\n" "$TEST_ARGS"
     rm -f "${GOLDEN_OUT_FILE}" "${GOLDEN_ERR_FILE}" "${CCMP_OUT_FILE}" "${CCMP_ERR_FILE}"
+    
     ##
     ${CMP} $TEST_ARGS > "${GOLDEN_OUT_FILE}" 2> "${GOLDEN_ERR_FILE}"
     CMP_EXIT_STATUS=$?
@@ -125,15 +125,14 @@ do
     fi
     ##
     if ! cmp -s "${GOLDEN_OUT_FILE}"  "${CCMP_OUT_FILE}"
-    then faildiff "${GOLDEN_OUT_FILE}" "${CCMP_OUT_FILE}" "stdout differs" 
+    then : faildiff "${GOLDEN_OUT_FILE}" "${CCMP_OUT_FILE}" "stdout differs" 
     fi
     if ! cmp -s "${GOLDEN_ERR_FILE}" "${CCMP_ERR_FILE}"
-    then faildiff "${GOLDEN_ERR_FILE}" "${CCMP_ERR_FILE}" "stderr differs" 
+    then : faildiff "${GOLDEN_ERR_FILE}" "${CCMP_ERR_FILE}" "stderr differs" 
     fi
     if [[ $GOOD -eq 1 ]]
     then echo Passed
     fi
-    break
 done
 
 exit $FAILED

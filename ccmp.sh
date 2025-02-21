@@ -46,7 +46,8 @@ function usage() {
 
 export REGULAR_CMP='/usr/bin/cmp'
 export EXTENTS='./extents'
-CCMP_RESULT_DIR="${HOME}/CCMP"
+CCMP_RESULT_DIR="${HOME}/tmp/CCMP"
+mkdir -p "${CCMP_RESULT_DIR}"
 
 SUFFIX="$$"
 OUT_FILE="${CCMP_RESULT_DIR}/ccmp_result_out_${SUFFIX}"
@@ -64,8 +65,8 @@ declare -a CMP_ARGS=()
 declare -a CMP_OPTIONS=()
 
 
-AWK1_="'"'{$5+='"'"'"$START1"'"'"'; $5 = $5 ","; sub(/, line [0-9]*/,""); print}'"'" # for stdout
-AWK2="'"'/EOF/ {$7+='"'"'"$START1"'"'"'; $7 = $7 ","; sub(/, in line [0-9]*/,""); print; next}'"'" #stderr
+AWK1='{$5+=START1; $5 = $5, sub(/, line [0-9]*/,""); print}' # for stdout
+AWK2='/EOF/ {$7+=START1; $7 = $7, sub(/, in line [0-9]*/,""); print; next}' #stderr
 
 declare -i EXIT_ON_FIRST_DIFFERENCE=1 # exit on first difference
 declare -i BYTES=0
@@ -84,9 +85,7 @@ ARGS=$(\
   -l "help,ignore-initial:,print_bytes,verbose,bytes:,quiet,silent,version" \
   -o "bhi:ln:sv" \
   -- "$@" \
-  )
-
-echo $ARGS
+  ) 
 
 if [ $? -ne 0 ]
 then
@@ -94,16 +93,17 @@ then
     exit
 fi
 
-eval set -- "$ARGS"
+eval set -- $ARGS
 
-while ((1))
+while true
 do
+
     case "$1" in
       ##
       '-b'|'--print-bytes')
         BYTES=1 
         ONE=1
-        CMP_OPTIONS+=('-b')
+        CMP_OPTIONS+=('--print-bytes')
         AWK1='{$5+=START1; printf "%s %s %s %s %s %s %3s %s %3s %s\n", $1, $2, $3, $4, $5, $8, $9, $10, $11, $12 }'
 	      #AWK2="'{print}'"
         shift;;
@@ -114,28 +114,28 @@ do
       ##
       '-i'|'--ignore-initial')
 	      SKIP=1
-	      EXTRA_ARGS+=('-i' "$2")
-        CMP_OPTIONS+=('-i' "$2")
+	      EXTRA_ARGS+=('--ignore-initial' "$2")
+        CMP_OPTIONS+=('--ignore-initial' "$2")
         AWK1='{$1-=START1; printf "%7s %3s %3s\n", $1, $2, $3}'
 	      shift 2;;
       ##
       '-l'|'--verbose')
         VERBOSE=1 
         STOP_AT_FIRST_ERROR=0
-        CMP_OPTIONS+=('-l')
+        CMP_OPTIONS+=('--verbose')
         AWK1='{$1-=START1; printf "%7s %3s %3s\n", $1, $2, $3}'
       	AWK2='/EOF/ {$7+=START1; print}'
         shift;;
       ##
       '-n'|'--bytes')
-        #CMPOPTS+=(-n "$2")
-        EXTRA_ARGS+=('-n' "$2")
+        CMP_OPTIONS+=('--bytes' "$2")
+        EXTRA_ARGS+=('--bytes' "$2")
         shift 2;;
       ##
       '-s'|'--quiet'|'--silent') 
         AWK1='{}'
         AWK2='{}'
-        CMP_OPTIONS+=('-s')
+        CMP_OPTIONS+=('--silent')
         shift;;
       ##
       '-v'|'--version') 
@@ -182,13 +182,13 @@ case $# in
     3) 
       A="$1"
       B="$2" 
-      EXTRA_ARGS+=('-i' "$3")
+      EXTRA_ARGS+=('--ignore-initial' "$3")
       ;;
     ##
     4) 
       A="$1" 
       B="$2" 
-      EXTRA_ARGS+=('-i' "$3:$4") 
+      EXTRA_ARGS+=('--ignore-initial' "$3:$4") 
       ;;
     ##
     *) 
@@ -215,7 +215,7 @@ function CCMP_AWK_LOOP {
       printf 'START1=%i START2=%i LENGTH=%i\n' $START1 $START2 $LENGTH
       (
           set -x; 
-          ${EXTENTS} -i "$START1:$START2" -b "$LENGTH" "$A" "$B" >${OUT_FILE} 2>${ERR_FILE}
+          ${EXTENTS} --ignore-initial "$START1:$START2" -n "$LENGTH" "$A" "$B" >${OUT_FILE} 2>${ERR_FILE}
       )
       CCMP_RETURN_VALUE=$?
       ##
@@ -259,7 +259,7 @@ CMP_ARGS+=("$A" "$B")
 
 ################################################################################
 
-(set -x; extents -c "${EXTENTS_ARGS[@]}") | CCMP_AWK_LOOP
+(set -x; extents --cmp "${EXTENTS_ARGS[@]}") | CCMP_AWK_LOOP
 
 declare -a PIPE_STATUS=("${PIPESTATUS[@]}")
 EXTENTS_EXIT_STATUS=${PIPE_STATUS[0]}

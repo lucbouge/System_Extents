@@ -6,7 +6,7 @@ ADDITIONAL_CFLAGS := -Wall -pedantic -g -Wno-nullability-extension
 COMPILE := gcc $(CFLAGS) $(ADDITIONAL_CFLAGS)
 
 C_FILES := $(wildcard *.c $(OS)/*.c)
-C_FILES_EXCLUDE := fiemap.c mkself.c
+C_FILES_EXCLUDE := fiemap.c mkself.c $(wildcard *_original.c)
 C_FILES := $(filter-out $(C_FILES_EXCLUDE), $(C_FILES))
 H_FILES := $(wildcard *.h $(OS)/*.h)
 O_FILES := $(C_FILES:%.c=%.o)
