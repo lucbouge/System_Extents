@@ -11,7 +11,7 @@ C_FILES := $(filter-out $(C_FILES_EXCLUDE), $(C_FILES))
 H_FILES := $(wildcard *.h $(OS)/*.h)
 O_FILES := $(C_FILES:%.c=%.o)
 
-MAKEFILE_FILES := Makefile Makefile.d
+MAKEFILE := Makefile
 
 
 
@@ -27,17 +27,17 @@ clean:
 
 all: $(TARGET)
 
-Makefile.d: $(C_FILES) $(H_FILES) 
-	$(COMPILE) -MM $^ > $@
+Makefile.d: $(C_FILES) $(H_FILES) $(MAKEFILE)
+	$(COMPILE) -MM $(C_FILES) $(H_FILES) > $@
 
 ################################################################################
 
 include Makefile.d
 
-$(TARGET): $(O_FILES) 
+$(TARGET): $(O_FILES)
 	$(COMPILE) -o $@ $^
 
-$(O_FILES):%.o:%.c $(MAKEFILE_FILES)
+$(O_FILES):%.o:%.c
 	$(COMPILE) -c $< -o $@
 
 ################################################################################

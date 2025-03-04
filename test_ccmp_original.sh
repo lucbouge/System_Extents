@@ -1,6 +1,6 @@
 #!/usr/bin/env bash 
 
-trap 'eval rm -f ${T}? /tmp/golden*$$ /tmp/output$$ /tmp/err$$ /tmp/opts$$ /tmp/pairs$$ $TESTS ${T}-self-?-?.dat' 0
+# trap 'eval rm -f ${T}? /tmp/golden*$$ /tmp/output$$ /tmp/err$$ /tmp/opts$$ /tmp/pairs$$ $TESTS ${T}-self-?-?.dat' 0
 trap exit 2 15
 
 # put the files with shared extents here-- must be in a filesystem that supports reflinks
@@ -93,7 +93,7 @@ fail() {
 
 faildiff() {
     fail "$3"
-    echo diff cmp vs ccmp ; diff "$1" "$2"
+    echo diff cmp vs ccmp ; diff -bB "$1" "$2"
     echo
 }    
 
@@ -101,9 +101,9 @@ while read -a testargs
 do
     start
     rm -f /tmp/golden$$ /tmp/golden-err$$ /tmp/output$$ /tmp/err$$
-    cmp "${testargs[@]}" >/tmp/golden$$ 2>/tmp/golden-err$$
+    /usr/bin/cmp "${testargs[@]}" >/tmp/golden$$ 2>/tmp/golden-err$$
     CMPEXIT=$?
-    ccmp "${testargs[@]}" >/tmp/output$$ 2>/tmp/err$$
+    ./ccmp_original.sh "${testargs[@]}" >/tmp/output$$ 2>/tmp/err$$
     CCMPEXIT=$?
     if [ $CCMPEXIT -ne $CMPEXIT ]
     then fail "exit status differs ($CMPEXIT for cmp, $CCMPEXIT for ccmp)" 

@@ -38,11 +38,14 @@ off_t end_l(extent *e) { return e->l + e->len; }
 // static off_t end_p(extent *e) { return e->p + e->len; }
 
 static void read_ext(char *fn[])
+
 {
+    FILE *stderr_FILE = fopen("/dev/stderr", "w");
     info = calloc_s(nfiles, sizeof(fileinfo));
     for (unsigned i = 0; i < nfiles; ++i)
     {
         char *name = fn[i];
+        fprintf(stderr_FILE, "==> Opening: %s\n", name);
         int fd = open(name, O_RDONLY);
         if (fd < 0)
             fail("Can't open file %s : %s\n", name, strerror(errno));

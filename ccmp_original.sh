@@ -125,12 +125,12 @@ cmpAwkLoop() {
 
 #sync # extents can be fooled by write data in flight, so stabilize - use fsync in extents? XXX
 PATH=$(dirname "$0")":$PATH"
-extents -c "${ExtArgs[@]}" "$A" "$B" | cmpAwkLoop
+(set -x; extents -c "${ExtArgs[@]}" "$A" "$B" )| cmpAwkLoop
 declare -a SAVED_PS=("${PIPESTATUS[@]}")
 Cmps=${SAVED_PS[1]}
 if [ ${SAVED_PS[0]} -ne 0 ]
 then # extents failed, fall back to cmp
-    cmp ${OrigArgs[@]} ; Cmps=$?
+    (set -x; cmp ${OrigArgs[@]}) ; Cmps=$?
 else
     Cmps=$(( ! Cmps ))
 fi
